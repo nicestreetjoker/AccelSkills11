@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+<?php
+// Логика начисления бонусов
+$user_id = $_SESSION['user_id']; // Идентификатор текущего пользователя
+$bonus_points = 100; // Количество начисляемых бонусных баллов
+
+// Проверка, существует ли запись о бонусах для данного пользователя
+$query = "SELECT * FROM bonuses WHERE user_id = $user_id";
+$result = mysqli_query($connection, $query);
+
+if (mysqli_num_rows($result) > 0) {
+    // Если запись существует, обновляем количество бонусных баллов
+    $row = mysqli_fetch_assoc($result);
+    $current_bonus_points = $row['bonus_points'];
+    $new_bonus_points = $current_bonus_points + $bonus_points;
+    $update_query = "UPDATE bonuses SET bonus_points = $new_bonus_points WHERE user_id = $user_id";
+    mysqli_query($connection, $update_query);
+} else {
+    // Если записи не существует, создаем новую запись
+    $insert_query = "INSERT INTO bonuses (user_id, bonus_points) VALUES ($user_id, $bonus_points)";
+    mysqli_query($connection, $insert_query);
+}
+
+// Получение количества бонусных баллов пользователя из базы данных
+$query = "SELECT bonus_points FROM bonuses WHERE user_id = $user_id";
+$result = mysqli_query($connection, $query);
+$row = mysqli_fetch_assoc($result);
+$bonus_points = $row['bonus_points'];
+
+// Вывод количества бонусных баллов
+echo "У вас " . $bonus_points . " бонусных баллов";
+// Логика использования бонусов
+$purchase_amount = 500; // Сумма покупки
+$bonus_discount = 0.1; // Скидка, предоставляемая за использование бонусов (например, 10%)
+
+// Получение количества бонусных баллов пользователя из базы данных
+$query = "SELECT bonus_points FROM bonuses WHERE user_id = $user_id";
+$result = mysqli_query($connection, $query);
+$row = mysqli_fetch_assoc($result);
+$bonus_points = $row['bonus_points'];
+
+// Проверка, достаточно ли бонусных баллов для получения скидки
+if ($bonus_points >= $purchase_amount * $bonus_discount) {
+    // Применение скидки и уменьшение количества бонусных баллов
+    $new_bonus_points = $bonus_points - ($purchase_amount * $bonus_discount);
+    $update_query = "UPDATE bonuses SET bonus_points = $new_bonus_points WHERE user_id = $user_id";
+    mysqli_query($connection, $update_query);
+
+    // Оформление заказа с применением скидки
+} else {
+    // Уведомление пользователя о недостаточном количестве бонусных баллов для получения скидки
+}
+?>
+
+</body>
+</html>
